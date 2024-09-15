@@ -1,0 +1,128 @@
+{
+    "schema": {
+        "$": "REGISTER",
+        "@": "PORT",
+        "&": "SELECTOR",
+        "!": "IMMEDIATE",
+        "=": "CONDITION",
+        ">": "JTARGET"
+    },
+    "wildcards": {
+        "_TRUE": "=0",
+        "_ZERO": "=1",
+        "_GT": "=2",
+        "_LT": "=3",
+        "_FALSE": "=4",
+        "_NON0": "=5",
+        "_LE": "=6",
+        "_GE": "=7",
+        "_EQ": "=1",
+        "_POS": "=2",
+        "_NEG": "=3",
+        "_NEQ": "=5"
+    },
+    "operations": {
+        "NOP": {
+            "opcode": 0,
+            "format": "NOP"
+        },
+        "ADD": {
+            "opcode": 2,
+            "format": "ADD $SRC $SRC"
+        },
+        "SUB": {
+            "opcode": 3,
+            "format": "SUB $SRC $SRC"
+        },
+        "MUL": {
+            "opcode": 4,
+            "format": "MUL $SRC $SRC"
+        },
+        "DIV": {
+            "opcode": 5,
+            "format": "DIV $SRC $SRC"
+        },
+        "SQR": {
+            "opcode": 6,
+            "format": "SQR $SRC"
+        },
+        "TRG": {
+            "opcode": 7,
+            "format": "TRG $SRC"
+        },
+        "LDI": {
+            "opcode": 0,
+            "format": "LDI $DST !IMM"
+        },
+        "WBB": {
+            "opcode": 1,
+            "format": "WBB $DST &BYT &RSH &LRS"
+        },
+        "JRC": {
+            "opcode": 2,
+            "format": "JRC &BYT =CND >TGT"
+        },
+        "PRT": {
+            "opcode": 3,
+            "format": "PRT @PRT $DST &BYT &RSH &PST"
+        }
+    },
+    "pseudooperations": {
+        "REG": {
+            "format": "REG $SRC",
+            "translation": "ADD %1 $0"
+        },
+        "WBL": {
+            "format": "WBL $DST",
+            "translation": "WBB %1 &0 &0 &0"
+        },
+        "WBH": {
+            "format": "WBH $DST",
+            "translation": "WBB %1 &1 &0 &0"
+        },
+        "PLD": {
+            "format": "PLD @PRT $DST",
+            "translation": "PRT %1 %2 &0 &0 &0"
+        },
+        "PST": {
+            "format": "PST @PRT",
+            "translation": "PRT %1 $0 &0 &0 &1"
+        },
+        "BEQ": {
+            "format": "BEQ >TGT",
+            "translation": "JRC &0 =1 %1"
+        },
+        "BNE": {
+            "format": "BNE >TGT",
+            "translation": "JRC &0 =5 %1"
+        },
+        "BLT": {
+            "format": "BLT >TGT",
+            "translation": "JRC &0 =3 %1"
+        },
+        "BGT": {
+            "format": "BGT >TGT",
+            "translation": "JRC &0 =2 %1"
+        },
+        "BGE": {
+            "format": "BGE >TGT",
+            "translation": "JRC &0 =7 %1"
+        },
+        "BLE": {
+            "format": "BLE >TGT",
+            "translation": "JRC &0 =6 %1"
+        },
+        "JMP": {
+            "format": "JMP >TGT",
+            "translation": "JRC &0 =0 %1"
+        },
+        "RSH": {
+            "format": "RSH $DST",
+            "translation": "WBB %1 &0 &1 &0"
+        },
+        "LRS": {
+            "format": "LRS $DST",
+            "translation": "WBB %1 &0 &1 &1"
+        }
+    }
+}

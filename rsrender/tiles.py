@@ -1,0 +1,25 @@
+BLACK = "black"
+BLUE = "blue"
+BROWN = "brown"
+CYAN = "cyan"
+GRAY = "gray"
+GREEN = "green"
+LIGHT_BLUE = "light_blue"
+LIGHT_GRAY = "light_gray"
+LIME = "lime"
+MAGENTA = "magenta"
+ORANGE = "orange"
+PINK = "pink"
+PURPLE = "purple"
+RED = "red"
+WHITE = "white"
+YELLOW = "yellow"
+LAMP_OFF = "lamp_off_2x2"
+LAMP_ON = "lamp_on_2x2"
+LEVER_OFF = "lever_off"
+LEVER_ON = "lever_on"
+BUTTON = "button"
+
+LEVER_TYPE = 0
+BUTTON_TYPE = 1
+LAMP_TYPE = 2
