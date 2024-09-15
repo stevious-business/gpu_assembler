@@ -310,7 +310,7 @@ def assemble(fp):
             line = f"\033[32m{str(i).rjust(len(str(len(prims))))}\033[33;2m"
             line += f" {format_16bit(instr)}\033[0;31m ({prims[i].ljust(10)})\033[36m"
             line += f" {format_16bit(secondary_bytes[i])}\033[34m ({seconds[i].ljust(20)})\033[0m"
-            line_no_colors = line.replace("\033[32m", "").replace("\033[31m", "").replace("\033[34m", "").replace("\033[0m", "").replace("\033[33m", "").replace("\033[36m", "") # TODO: use regex ffs
+            line_no_colors = line.replace("\033[32m", "").replace("\033[0;31m", "").replace("\033[34m", "").replace("\033[0m", "").replace("\033[33;2m", "").replace("\033[36m", "") # TODO: use regex ffs
             wf.write(line_no_colors+"\n")
             print(line)
 
