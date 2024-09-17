@@ -7,6 +7,9 @@
 , LDI $14 !64;
 , LDI $15 !-40;
 .xloop , PLD @3 $1;
+SUB $14 $1, BNE .notend;
+, PLD @0 $0;
+.notend
 SUB $10 $1, BGT .xloop;
 SUB $13 $1, BLT .xloop;
 REG $1, PST @0;

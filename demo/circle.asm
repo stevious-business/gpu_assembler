@@ -2,8 +2,12 @@
 , LDI $11 !16;
 , LDI $12 !32;
 , LDI $13 !1;
+, LDI $14 !64;
 # function: 2sqrt(255-(x/2-16)²)+32
 .xloop , PLD @3 $1; # $1 = x
+SUB $14 $1, BNE .notend;
+, PLD @0 $0;
+.notend
 # x/2 - 16
 SUB $1 $13, WBL $3;
 REG $1, RSH $1;

@@ -14,7 +14,11 @@ import sys
 TRIG_LUT = loads(open("trig_lut.json").read())
 
 BLOCKING_WARNING = """WARNING!
-The active kernel has tried to read from a port that is not 2 or 3. Since these are physically disconnected in the hardware design, the GPU will never resume from the blocking state until reset. This means an effective termination of the program."""
+The active kernel has tried to read from a port that is not 1, 2 or 3. Since these are physically disconnected in the hardware design, the GPU will never resume from the blocking state until reset. This means an effective termination of the program."""
+
+BSYNC_WARNING = """WARNING!
+The active kernel has attempted to perform a barrier synchronization operation. Because of the way the emulator executes kernels, functionality in the emulator does not suffice to confirm correctness on the actual multiprocessing device.
+"""
 
 
 def extract_value_from_number(number, offset, bitwidth):
@@ -22,10 +26,15 @@ def extract_value_from_number(number, offset, bitwidth):
 
 
 class ProgramRunner:
+
+    DISPLAY_TILING_ENABLED = True
+
     def __init__(self, p, s, ls: rsrender.RSLampScreen):
         self.lampscreen = ls
         self.primary = p
         self.secondary = s
+        self.n_primaries = 0
+        self.n_secondaries = 0
         self.parameter = 0
         self.pc = 0
         self.regfile = [randint(0, 255) for i in range(64)]
@@ -34,16 +43,17 @@ class ProgramRunner:
         self.lo = randint(0, 255)
         self.hi = randint(0, 255)
         self.active = False
-
+        self.new_frame = False
 
     def obtain_new_parameter(self):
         p = self.parameter
         self.parameter += 1
-        if self.parameter == 64:
-            self.active = False
+        self.parameter = self.parameter & 0x7F
         return p
 
     def reset(self):
+        self.n_primaries = 0
+        self.n_secondaries = 0
         self.parameter = 0
         self.active = False
         self.pc = 0
@@ -71,14 +81,10 @@ class ProgramRunner:
         # because i cant be fucked to do multicore or interleaving rn
         # im gonna sim a 1-core machine
         self.active = True
-        n_primaries = 0
-        n_secondaries = 0
         while True:
             # IF
-            n_primaries += 1
-            n_secondaries += 1
-            if self.parameter == 33:
-                pass
+            self.n_primaries += 1
+            self.n_secondaries += 1
             current_primary = self.primary[self.pc]
             current_secondary = self.secondary[self.pc]
             self.pc += 1
@@ -132,13 +138,11 @@ class ProgramRunner:
                 self.lo = sin
                 self.hi = cos
             else:
-                n_primaries -= 1
+                self.n_primaries -= 1
             # WB
             if sec_opcode == 0:
                 # ldi
                 self.regfile[sec_dest] = sec_imm
-                if sec_dest == 0:
-                    n_secondaries -= 1
             elif sec_opcode == 1:
                 wbval = (self.lo, self.hi)[sec_sbyte]
                 if sec_srsh:
@@ -172,11 +176,20 @@ class ProgramRunner:
                 else:
                     if sec_prt == 3:
                         wbval = self.obtain_new_parameter()
-                        if wbval == 64:
-                            break # done
                     elif sec_prt == 2:
                         x1, y1, x2, y2 = self.port_values[:4]
-                        self.plot_rect(x1, x2, y1, y2)
+                        x1 &= 63
+                        x2 &= 63
+                        y1 &= 63
+                        y2 &= 63
+                        draw = True
+                        for value in self.port_values[:4]:
+                            if value & ~0x3F:
+                                draw = self.DISPLAY_TILING_ENABLED
+                        if draw:
+                            self.plot_rect(x1, x2, y1, y2)
+                    elif sec_prt == 1:
+                        self.new_frame = True
                     else:
                         sys.stderr.write(BLOCKING_WARNING)
                         break
@@ -187,8 +200,13 @@ class ProgramRunner:
                             wbval = (wbval >> 1) + (wbval & 128)
                     self.regfile[sec_dest] = wbval
             self.regfile[0] = 0 # 0 cannot be changed :3
-        print(f"Executed {n_primaries}/{n_secondaries} primary/secondary instructions!")
-        instrs_per_core = n_secondaries / 8
+            if self.new_frame:
+                self.new_frame = False
+                return
+
+        self.active = False
+        print(f"Executed {self.n_primaries}/{self.n_secondaries} primary/secondary instructions!")
+        instrs_per_core = self.n_secondaries / 8
         instr_time_bounds = (120, 240, 160)
         est_server_tps = 27
         exe_time_lower = round(instrs_per_core*instr_time_bounds[0]/est_server_tps)
@@ -199,8 +217,9 @@ class ProgramRunner:
 
 
 if __name__ == "__main__":
-    program_name = "demo/heart.asm"
+    program_name = "program_trig_hwaccel.asm"
     assemble(program_name)
+
     with open("binaries/"+program_name) as rf:
         progdata = loads(rf.read())
     primary_bytes = progdata["primary"]
@@ -227,6 +246,9 @@ if __name__ == "__main__":
     button_run.set_trigger(pr.run_program, (), {})
 
     while True:
+        if pr.active:
+            pr.clear_screen()
+            pr.run_program()
         dsp.fill((0, 0, 0))
         root.draw_all()
         for event in pygame.event.get():
@@ -236,4 +258,4 @@ if __name__ == "__main__":
             if event.type == MOUSEBUTTONDOWN:
                 root.handle_input()
         pygame.display.update()
-        pygame.time.wait(10)
+        pygame.time.wait(30)
