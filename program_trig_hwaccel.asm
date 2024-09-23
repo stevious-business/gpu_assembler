@@ -25,7 +25,7 @@ SUB $14 $10, BNE .checkover64;      # if page == 64:
     ADD $11 $9, WBL $9;
 .frame_continue
 
-REG $1, WBL $12;
+REG $1, WBL $12; # 18
 SUB $1 $9, WBL $1;
 
 # calculate first y value

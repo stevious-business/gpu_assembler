@@ -29,7 +29,7 @@ def place_byte_at(schem, x, y, z, orientation, db):
         if db & 1:
             schem.setBlock((x, y, z), f"minecraft:repeater[facing={orientation}]")
         else:
-            schem.setBlock((x, y, z), "minecraft:diamond_block")
+            schem.setBlock((x, y, z), "minecraft:blue_concrete")
         y += 2
         db >>= 1
 

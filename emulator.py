@@ -48,6 +48,8 @@ class ProgramRunner:
     def obtain_new_parameter(self):
         p = self.parameter
         self.parameter += 1
+        if self.parameter >= 64:
+            self.active = False
         self.parameter = self.parameter & 0x7F
         return p
 
@@ -202,13 +204,15 @@ class ProgramRunner:
             self.regfile[0] = 0 # 0 cannot be changed :3
             if self.new_frame:
                 self.new_frame = False
+                if not self.active:
+                    break
                 return
 
         self.active = False
         print(f"Executed {self.n_primaries}/{self.n_secondaries} primary/secondary instructions!")
         instrs_per_core = self.n_secondaries / 8
         instr_time_bounds = (120, 240, 160)
-        est_server_tps = 27
+        est_server_tps = 100000
         exe_time_lower = round(instrs_per_core*instr_time_bounds[0]/est_server_tps)
         exe_time_upper = round(instrs_per_core*instr_time_bounds[1]/est_server_tps)
         exe_time_pred = round(instrs_per_core*instr_time_bounds[2]/est_server_tps, 2)
